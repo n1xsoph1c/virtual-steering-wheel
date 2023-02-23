@@ -1,18 +1,15 @@
 <meta name="viewport" content="user-scalable=no">
 
 <script>
-    if(document.querySelector("#html").requestFullscreen)
-	document.querySelector("#html").requestFullscreen();
-    else if(document.querySelector("#html").webkitRequestFullScreen)
-        document.querySelector("#html").webkitRequestFullScreen();
+    
+    document.documentElement.requestFullscreen();
+    screen.orientation.lock("landscape-primary")
+    screen.msLockOrientation.lock("landscape-primary");
+    screen.mozLockOrientation.lock("landscape-primary");
 
-    screen.orientation.lock("landscape")
-	.then(function() {
-		alert('Locked');
-	})
-	.catch(function(error) {
-		alert(error);
-	});
+    screen.orientation.addEventListener("change", function(e) {
+  alert(screen.orientation.type + " " + screen.orientation.angle);
+}, false);
 </script>
 
 <style>
@@ -86,7 +83,7 @@
 
     #LS, #RS {
         height: 60px;
-        width: 100px;
+        width: 200px;
         border: 1px solid #bd9eea;
         background: #542a6436;
         color: white;
@@ -106,7 +103,7 @@
 
     #LT, #RT {
         height: 200px;
-        width: 100px;
+        width: 200px;
         border: 1px solid #9eea9e;
         background: #203c2036;
         color: white;
@@ -246,6 +243,7 @@
     var x = sensor.beta ? Math.ceil(sensor.beta) : 0 ;
     var y = sensor.gamma ? Math.ceil(sensor.gamma) : 0 ;
     
+    // PREVENT GIMBLE LOCK BY LIMITTING Y AXIS TO 89deg
     if (y >= 89) y = 89
     if (y <= -89) y = -89 
 
@@ -257,21 +255,20 @@
     var heading = steeringHeading(x, y, z)
 
     elem.style.transform = `rotate(${Math.ceil(heading)}deg)`;
-    rotText(`thrust: ${accel}`)
     valoText(`Rotation: ${heading}deg`)
     
     if (Math.abs(heading - oH) > 0)
         // sendData(heading, "steering")
-        socket.emit("gyro", {steering: heading, thrust: accel})
+        socket.emit("gyro", {steering: Math.ceil(heading), thrust: accel})
         oH = heading
     
+    rotText(`OH: ${oH} | H: ${heading}`)
 
-    
 }, true);
 
     var onlongtouch; 
     var timer;
-    var touchduration = 0.4; //length of time we want the user to touch before we do something
+    var touchduration = 0.1; //length of time we want the user to touch before we do something
 
     function touchstart(e) {
         e.preventDefault();

@@ -87,14 +87,14 @@ def buttonTouchEnd():
 def gyro(data):
     global OLD_STEERING
 
-    DEADZONE = 0.25
     STEERING = data['steering']
     MAX_STEERING = 65
+    MULTIPLIER = 100 / MAX_STEERING
 
     if STEERING > MAX_STEERING: STEERING = MAX_STEERING
     if STEERING < -MAX_STEERING: STEERING = -MAX_STEERING
 
-    TRIGGER = float("{:.4f}".format((STEERING * (100/ MAX_STEERING) / 100)))
+    TRIGGER = float("{:.2f}".format((STEERING * MULTIPLIER / 100)))
     gamepad.left_joystick_float(x_value_float=TRIGGER, y_value_float=0)
     # gamepad.right_trigger_float(value_float=data['thrust'] / 75)
     # time.sleep(DEADZONE)
