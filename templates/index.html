@@ -1,313 +1,205 @@
-<meta name="viewport" content="user-scalable=no">
+<meta name="viewport" content="user-scalable=no" />
 
-<script>
-    
-    document.documentElement.requestFullscreen();
-    screen.orientation.lock("landscape-primary")
-    screen.msLockOrientation.lock("landscape-primary");
-    screen.mozLockOrientation.lock("landscape-primary");
-
-    screen.orientation.addEventListener("change", function(e) {
-  alert(screen.orientation.type + " " + screen.orientation.angle);
-}, false);
-</script>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500&display=swap');
-    body {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 18px;
-        background-color: rgba(20, 20, 20, 0.993);
-        color:white;
-        
-        -webkit-touch-callout: none; /* Safari */
-        -webkit-user-select: none; /* Chrome */     
-        -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-        user-select: none; 
-        width: 100%;
-    }
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500&display=swap");
+  body {
+    font-family: "Montserrat", sans-serif;
+    font-size: 18px;
+    background-color: rgba(20, 20, 20, 0.993);
+    color: white;
 
-    #error {
-        font-weight: 500;
-        color: rgb(230, 45, 45);
-    }
+    -webkit-touch-callout: none; /* Safari */
+    -webkit-user-select: none; /* Chrome */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+    width: 100%;
+  }
 
-    #log {
-        margin-top: 20px;
-        font-size: 1vw;
-        color: white;
-        margin: 20px auto;
-        width: 100%;
-        text-align: center;
-        color: #fff;
-        background: #8bf57c3d;
-        text-transform: uppercase;
-        box-sizing: border-box;
-    }
+  #error {
+    font-weight: 500;
+    color: rgb(230, 45, 45);
+  }
 
-    #data {
-        box-sizing: border-box;
-        font-size: 20px;
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        width: 500px;
-    }
+  #log {
+    margin-top: 20px;
+    font-size: 1vw;
+    color: white;
+    margin: 20px auto;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    background: #8bf57c3d;
+    text-transform: uppercase;
+    box-sizing: border-box;
+  }
 
-    #veloText, #rotText {
-        /*! width: 400px; */
-        text-align: center;
-        margin: 0px;
-    }
+  #data {
+    box-sizing: border-box;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    width: 500px;
+  }
 
-    button{
-        background-color: gray;
-    }
+  #veloText,
+  #rotText {
+    /*! width: 400px; */
+    text-align: center;
+    margin: 0px;
+  }
 
+  button {
+    background-color: gray;
+  }
 
-    .main {
-        display: flex;
-        width: 100vw;
-        box-sizing: border-box;
-        justify-content: space-around;
-        align-content: center;
-    }
+  .main {
+    display: flex;
+    width: 100vw;
+    box-sizing: border-box;
+    justify-content: space-around;
+    align-content: center;
+  }
 
-    .main div {
-        display: flex;
-        flex-flow: column;
-        justify-content: space-around;
-    }
+  .main div {
+    display: flex;
+    flex-flow: column;
+    justify-content: space-around;
+  }
 
-    #LS, #RS {
-        height: 60px;
-        width: 200px;
-        border: 1px solid #bd9eea;
-        background: #542a6436;
-        color: white;
-        font-size: 2vw;
-        margin: 5px auto;
-        border-radius: 20px;
-    }
+  #LS,
+  #RS {
+    height: 60px;
+    width: 200px;
+    border: 1px solid #bd9eea;
+    background: #542a6436;
+    color: white;
+    font-size: 2vw;
+    margin: 5px auto;
+    border-radius: 20px;
+  }
 
-    #RS {
-        margin: 5px 0px auto auto;
-    }
+  #RS {
+    margin: 5px 0px auto auto;
+  }
 
+  #LS:active,
+  #RS:active {
+    background-color: #832da536;
+  }
 
-    #LS:active, #RS:active {
-        background-color: #832da536;
-    }
+  #LT,
+  #RT {
+    height: 200px;
+    width: 200px;
+    border: 1px solid #9eea9e;
+    background: #203c2036;
+    color: white;
+    font-size: 2vw;
+    border-bottom-right-radius: 40px;
+    border-bottom-left-radius: 40px;
+    margin: 20px auto;
+  }
 
-    #LT, #RT {
-        height: 200px;
-        width: 200px;
-        border: 1px solid #9eea9e;
-        background: #203c2036;
-        color: white;
-        font-size: 2vw;
-        border-bottom-right-radius: 40px;
-        border-bottom-left-radius: 40px;
-        margin: 20px auto;
-    }
+  #LT:active,
+  #RT:active {
+    background: #00ff1021;
+  }
 
-    #LT:active, #RT:active {
-        background: #00ff1021;
-    }
+  #LT:active + body {
+    background-color: #00ff1021;
+  }
 
-    #LT:active +body{
-        background-color:  #00ff1021;
-    }
-    
+  #RT:active + body {
+    background-color: rgb(28, 34, 33);
+  }
 
-    #RT:active +body{
-        background-color: rgb(28, 34, 33);;
-    }
+  #B,
+  #X {
+    width: 80px;
+    height: 80px;
+    background: #3c2c2c;
+    border: 1px solid #f55;
+    font-size: 20px;
+    color: white;
+  }
 
-    #B, #X {
-        width: 80px;
-        height: 80px;
-        background: #3c2c2c;
-        border: 1px solid #f55;
-        font-size: 20px;
-        color: white;
-    }
+  #view3d {
+    border: 0;
+    width: auto;
+    width: 200px;
+    max-height: 200px;
+    margin: auto;
+    /*! height: 400; */
+  }
 
+  .gearBtnContainer {
+    display: inline-flex !important;
+    flex-flow: row !important;
+  }
 
-    #view3d {
-        border:0;
-        width:auto;
-        width: 200px;
-        max-height:200px;
-        margin: auto;
-        /*! height: 400; */
-    }
-
-
-    .gearBtnContainer {
-        display: inline-flex !important;
-        flex-flow: row !important;
-    }
-
-    .gearBtns {
-        margin: 0px 20px;
-    }
-
-
-    </style>
+  .gearBtns {
+    margin: 0px 20px;
+  }
+</style>
 
 <body id="html">
-    <p id="error"></p>
-    <p id="log"></p>
-    <p id="veloText"> </p>
-    <p id="rotText"> </p>
-    <div class="main">
-        <div>
-            <button id="LS"> LS </button>
-            <button id="LT"> LT </button>
-        </div>
-        <div id="data">
-            <img src="https://pngimg.com/uploads/steering_wheel/steering_wheel_PNG16683.png" alt="Steering wheel PNG" title="Steering wheel PNG" style="border:0;width:auto;width: 200px;max-height:200px;" id="view3d">
-            
-        </div>
-        <div>
-            
-            <button id="RS"> RS </button>
-
-            <div class="gearBtnContainer">
-                <div class="gearBtns">
-                    <button id="B"> B </button>
-                    <button id="X"> X </button>
-                </div>
-                <button id="RT"> RT </button>
-            </div>
-
-            
-        </div>
+  <p id="error"></p>
+  <p id="log"></p>
+  <p id="veloText"></p>
+  <p id="rotText"></p>
+  <div class="main">
+    <div>
+      <button id="LS">LS</button>
+      <button id="LT">LT</button>
     </div>
+    <div id="data">
+      <img
+        src="https://pngimg.com/uploads/steering_wheel/steering_wheel_PNG16683.png"
+        alt="Steering wheel PNG"
+        title="Steering wheel PNG"
+        style="border: 0; width: auto; width: 200px; max-height: 200px"
+        id="view3d"
+      />
+    </div>
+    <div>
+      <button id="RS">RS</button>
+
+      <div class="gearBtnContainer">
+        <div class="gearBtns">
+          <button id="B">B</button>
+          <button id="X">X</button>
+        </div>
+        <button id="RT">RT</button>
+      </div>
+    </div>
+  </div>
 </body>
-<script src="/static/OrientationHandler.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+
+
 <script type="text/javascript" charset="utf-8">
-    var socket = io();
-    
-    console.log = (log) => {
-        document.getElementById("log").innerHTML = log;
-    }
+  console.log = (log) => {
+    document.getElementById("log").innerHTML = log;
+  };
 
-    let valoText = (log) => {
-        document.getElementById("veloText").innerHTML = log;
-    }
+  let valoText = (log) => {
+    document.getElementById("veloText").innerHTML = log;
+  };
 
-    let rotText = (log) => {
-        document.getElementById("rotText").innerHTML = log;
-    }
+  let rotText = (log) => {
+    document.getElementById("rotText").innerHTML = log;
+  };
 
-    window.onerror = function(error) {
+  window.onerror = function (error) {
     // do something clever here
-        document.getElementById("error").innerText = error.toString();
-    };
-
-    const elem = document.getElementById("view3d");
-
-    socket.on('connect', function() {
-       console.log("Connected to server!") 
-    });
-
-    
-
-
-    let oldHeading = 0
-    let calcDiff = (a, b) => {
-        return Math.ceil(Math.abs(a - b))
-    }
-
-    let sendData = (data, url) => {
-        fetch(`${window.origin}/${url}`, {
-            method: "POST",
-            credentials: "include",
-            body: JSON.stringify(data),
-            cache: "no-cache",
-            headers: new Headers({
-            "content-type": "application/json"
-            })
-        })
-    }
-
-
-    var oH = 0
-    window.addEventListener("deviceorientation", function(sensor) {
-    var z = sensor.alpha ? Math.ceil(sensor.alpha) : 0 ;
-    var x = sensor.beta ? Math.ceil(sensor.beta) : 0 ;
-    var y = sensor.gamma ? Math.ceil(sensor.gamma) : 0 ;
-    
-    // PREVENT GIMBLE LOCK BY LIMITTING Y AXIS TO 89deg
-    if (y >= 89) y = 89
-    if (y <= -89) y = -89 
-
-    var accel = 90 + y
-    
-    if (accel >= 75) accel = 75
-    if (accel <= 20) accel = 0
-
-    var heading = steeringHeading(x, y, z)
-
-    elem.style.transform = `rotate(${Math.ceil(heading)}deg)`;
-    valoText(`Rotation: ${heading}deg`)
-    
-    if (Math.abs(heading - oH) > 0)
-        // sendData(heading, "steering")
-        socket.emit("gyro", {steering: Math.ceil(heading), thrust: accel})
-        oH = heading
-    
-    rotText(`OH: ${oH} | H: ${heading}`)
-
-}, true);
-
-    var onlongtouch; 
-    var timer;
-    var touchduration = 0.1; //length of time we want the user to touch before we do something
-
-    function touchstart(e) {
-        e.preventDefault();
-        if (!timer) {
-            timer = setTimeout(onlongtouch, touchduration);
-        }
-    }
-
-    function touchend() {
-        //stops short touches from firing the event
-        if (timer) {
-            clearTimeout(timer);
-            timer = null;
-        }
-    }
-
-    onlongtouch = function() { 
-        timer = null;
-        document.getElementById('ping').innerText+='ping\n'; 
-    };
-
-    var buttons = document.getElementsByTagName("button")
-    for (let i = 0; i < buttons.length; i++) {
-        const button = buttons[i];
-        button.addEventListener("click", () => {
-            // socket.emit("button-press", button.id)
-            sendData(button.id, "buttonPress")
-            console.log(`${button.id} was pressed`)
-        })
-
-        button.addEventListener("touchstart", () => {
-            // socket.emit("buttonTouchStart", button.id)
-            sendData(button.id, "buttonTouchStart")
-        })
-
-        button.addEventListener("touchend", () => {
-            // socket.emit("buttonTouchEnd", button.id)
-            sendData(button.id, "buttonTouchEnd")
-        })
-    }
-
+    document.getElementById("error").innerText = error.toString();
+  };
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script src="/static/SocketHandler.js"></script>
+<script src="/static/FullScreen.js"></script>
+<script src="/static/ButtonHandler.js"></script>
+<script src="/static/OrientationHandler.js"></script>

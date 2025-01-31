@@ -1,28 +1,38 @@
+import eventlet
+import eventlet.wsgi
+import ssl
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from engineio.payload import Payload
-
 import vgamepad as vg
 import time
 import logging
 
+# Reduce logging overhead
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 
-app = Flask(__name__,  static_url_path='/static')
+# Flask app setup
+app = Flask(__name__, static_url_path='/static')
 app.config['SECRET_KEY'] = 'secret!'
 
-Payload.max_decode_packets = 1000
-socketio = SocketIO(app,  async_mode='threading', logging=False)
+# Increase max payload size
+Payload.max_decode_packets = 10000
+
+# Use eventlet for lower latency WebSockets
+socketio = SocketIO(app, async_mode='eventlet', logging=False, cors_allowed_origins='*', max_http_buffer_size=10**7)
+
 gamepad = vg.VX360Gamepad()
 
-
+# Constants for the gamepad 
+LAST_UPDATE = 0
+UPDATE_INTERVAL = 0.01  # 10ms
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-   return render_template('index.html')
+    return render_template('index.html')
 
-
+# Button Mapping
 BUTTON_LIST = {
     'dU': vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
     'dD': vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN,
@@ -41,67 +51,81 @@ BUTTON_LIST = {
     'Y': vg.XUSB_BUTTON.XUSB_GAMEPAD_Y,
 }
 
+@socketio.on('gyro')
+def gyro(data):
+    """ Process gyroscope input with minimal latency """
+    global LAST_UPDATE
 
-@app.route("/buttonPress", methods=['POST'])
-def buttonPress():
-    button = request.get_json()
-    gamepad.press_button(button=BUTTON_LIST[button])
-    gamepad.update()
-    time.sleep(0.5)
-    gamepad.reset()
-    gamepad.update()
-    return '200'
+    current_time = time.time()
+    if current_time - LAST_UPDATE < UPDATE_INTERVAL:
+        return  # Skip update if not enough time has passed
 
-@app.route("/buttonTouchStart", methods=['POST'])
-def buttonTouchStart():
-    button = request.get_json()
-    if button == "RT" :
+    LAST_UPDATE = current_time
+
+    STEERING = data.get('steering', 0)  # Ensure data exists
+    y = 0  # Initialize y
+    if STEERING >= 45:
+        y = 45
+    elif STEERING <= -45:
+        y = -45
+    else:
+        y = (STEERING / 45) * 45
+
+    MAX_STEERING = 45
+    MULTIPLIER = 100 / MAX_STEERING
+
+    STEERING = max(min(y, MAX_STEERING), -MAX_STEERING)  # Clamp values
+    TRIGGER = round((y * MULTIPLIER / 100), 2)  # Normalize
+
+    gamepad.left_joystick_float(x_value_float=TRIGGER, y_value_float=0)
+    # gamepad.right_joystick_float(x_value_float=0, y_value_float=thrust)
+    gamepad.update()
+
+    print(f"🎮 Gyro Input: {TRIGGER:.2f} | Steering: {STEERING}")
+
+@socketio.on('buttonPress')
+def handle_button_press(data):
+    button = data.get("button", "")
+    if button in BUTTON_LIST:
+        gamepad.press_button(button=BUTTON_LIST[button])
+        gamepad.update()
+        print(f"🟢 Button {button} pressed")
+
+@socketio.on('buttonTouchStart')
+def handle_button_touch_start(data):
+    button = data.get("button", "")
+    if button == "RT":
         gamepad.right_trigger_float(1)
-
-    if button == "LT":
+    elif button == "LT":
         gamepad.left_trigger_float(1)
-    
-    if button != "RT" and button != "LT":
+    elif button in BUTTON_LIST:
         gamepad.press_button(button=BUTTON_LIST[button])
 
     gamepad.update()
-    return '200'
+    print(f"🔵 Button {button} long press start")
 
-@app.route("/buttonTouchEnd", methods=['POST'])
-def buttonTouchEnd():
-    button = request.get_json()
-
-    if button == "RT" :
+@socketio.on('buttonTouchEnd')
+def handle_button_touch_end(data):
+    button = data.get("button", "")
+    if button == "RT":
         gamepad.right_trigger_float(0)
-
-    if button == "LT":
+    elif button == "LT":
         gamepad.left_trigger_float(0)
-    
-    if button != "RT" and button != "LT":
+    elif button in BUTTON_LIST:
         gamepad.release_button(button=BUTTON_LIST[button])
-        
+
     gamepad.update()
-    return '200'
+    print(f"🟠 Button {button} released")
 
-@socketio.on('gyro')
-def gyro(data):
-    global OLD_STEERING
 
-    STEERING = data['steering']
-    MAX_STEERING = 65
-    MULTIPLIER = 100 / MAX_STEERING
 
-    if STEERING > MAX_STEERING: STEERING = MAX_STEERING
-    if STEERING < -MAX_STEERING: STEERING = -MAX_STEERING
-
-    TRIGGER = float("{:.2f}".format((STEERING * MULTIPLIER / 100)))
-    gamepad.left_joystick_float(x_value_float=TRIGGER, y_value_float=0)
-    # gamepad.right_trigger_float(value_float=data['thrust'] / 75)
-    # time.sleep(DEADZONE)
-    gamepad.update()
-
-    print(f'\nTRIGGER: {TRIGGER} | STEERING: {STEERING} \n')
-
- 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", ssl_context=("cert.pem", "key.pem"))
+    # Wrap SSL manually since eventlet does not support ssl_context in `socketio.run()`
+    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
+
+    socket = eventlet.listen(('0.0.0.0', 5000))
+    secure_socket = eventlet.wrap_ssl(socket, certfile="cert.pem", keyfile="key.pem", server_side=True)
+
+    print("🚀 Running secure WebSocket server on https://0.0.0.0:5000")
+    eventlet.wsgi.server(secure_socket, app)

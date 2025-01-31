@@ -102,7 +102,7 @@ async def main():
     """ Main async loop to keep the client connected """
     while True:
         try:
-            await sio.connect('https://localhost:5000', wait_timeout=5)
+            await sio.connect('https://192.168.0.100:5000', wait_timeout=5)
             print("🚀 Connected!")
             await sio.wait()
         except Exception as e:
