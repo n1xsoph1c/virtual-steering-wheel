@@ -1,9 +1,13 @@
 import asyncio
 import socketio
 import vgamepad as vg
+import time 
 
 sio = socketio.AsyncClient(ssl_verify=False)
 gamepad = vg.VX360Gamepad()
+
+LAST_UPDATE = 0  # Global timestamp tracker
+UPDATE_INTERVAL = 0.01  # 10ms delay
 
 BUTTON_LIST = {
     'dU': vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
@@ -25,71 +29,86 @@ BUTTON_LIST = {
 
 @sio.event
 async def connect():
-    print('connection established')
+    print('🔗 Connection established')
     await sio.emit('connect-device', "host")
-    print("connected as HOST!")
+    print("✅ Connected as HOST!")
     await sio.emit("join-room", "android")
 
 
 @sio.event
 async def gyro(data):
+    """ Process gyroscope input with minimal latency """
+    global LAST_UPDATE
+
+    # Update only if at least 10ms have passed
+    current_time = time.time()
+    if current_time - LAST_UPDATE < UPDATE_INTERVAL:
+        return
+    LAST_UPDATE = current_time
+    
     STEERING = 100
     MULTIPLIER = 1.4
     TRIGGER = (data['y'] / STEERING) * MULTIPLIER
-    if TRIGGER > 1: TRIGGER = 1
-    if TRIGGER < -1: TRIGGER = -1
-    print(TRIGGER)              
-    # if TRIGGER > 0.2: TRIGGER += 0.4
-    # if TRIGGER < 0.2: TRIGGER -= 0.4  
-    # if TRIGGER < -1: TRIGGER = -1
-    # if TRIGGER > 1: TRIGGER = 1            
-    # print(TRIGGER, AXIS)
+    TRIGGER = max(min(TRIGGER, 1), -1)  # Clamp values between -1 and 1
+
     gamepad.left_joystick_float(x_value_float=TRIGGER, y_value_float=0)
     gamepad.update()
+    
+    print(f"🎮 Gyro Input: {TRIGGER:.2f}")
+
 
 @sio.event
 async def disconnect():
-    print('disconnected from server')
+    print('❌ Disconnected from server')
+
 
 @sio.event
 async def buttonPress(button):
+    """ Handles button press with improved responsiveness """
     gamepad.press_button(button=BUTTON_LIST[button])
     gamepad.update()
-    await asyncio.sleep(0.5)
-    gamepad.reset()
+    await asyncio.sleep(0.1)  # Faster response (100ms instead of 200ms)
+    gamepad.release_button(button=BUTTON_LIST[button])
     gamepad.update()
+
 
 @sio.event
 async def buttonTouchStart(button):
-
-    if button == "RT" :
+    """ Handles continuous button press without unnecessary delay """
+    if button == "RT":
         gamepad.right_trigger_float(1)
-
-    if button == "LT":
+    elif button == "LT":
         gamepad.left_trigger_float(1)
-    
-    if button != "RT" and button != "LT":
+    else:
         gamepad.press_button(button=BUTTON_LIST[button])
 
     gamepad.update()
 
+
 @sio.event
 async def buttonTouchEnd(button):
-    if button == "RT" :
+    """ Handles releasing of button inputs """
+    if button == "RT":
         gamepad.right_trigger_float(0)
-
-    if button == "LT":
+    elif button == "LT":
         gamepad.left_trigger_float(0)
-    
-    if button != "RT" and button != "LT":
+    else:
         gamepad.release_button(button=BUTTON_LIST[button])
-        
+
     gamepad.update()
 
 
 async def main():
-    await sio.connect('https://localhost:3000')
-    await sio.wait()
+    """ Main async loop to keep the client connected """
+    while True:
+        try:
+            await sio.connect('https://localhost:5000', wait_timeout=5)
+            print("🚀 Connected!")
+            await sio.wait()
+        except Exception as e:
+            print(f"🔄 Reconnecting... {e}")
+            await asyncio.sleep(2)  # Retry every 2 seconds
+
 
 if __name__ == '__main__':
     asyncio.run(main())
